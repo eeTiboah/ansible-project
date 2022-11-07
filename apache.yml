@@ -120,4 +120,84 @@
       state: present
 
 
+  - name: clone laravel repo
+    tags: composer,project
+    git:
+      dest: /home/ubuntu/myapp
+      repo: https://github.com/f1amy/laravel-realworld-example-app.git
+      update: no
+
+  - name: change project ownership
+    tags: composer
+    file:
+      path: /home/ubuntu/myapp/
+      owner: ubuntu
+      group: ubuntu
+      mode: '0744'
+      recurse: yes
+
+  - name: update repo index
+    apt:
+      update_cache: true
+
+  - name: change composer ownership
+    tags: composer
+    file:
+      path: /usr/local/bin/composer
+      owner: ubuntu
+      group: ubuntu
+      mode: '0744'
+ 
+  - name: change composer permissions
+    tags: composer,execute
+    become: no
+    file:
+      dest: /usr/local/bin/composer
+      mode: a+x
   
+  - name: add composer to path
+    tags: composer,execute
+    lineinfile: 
+      path: /root/.bashrc
+      line: export PATH=$PATH:/usr/local/bin/
+  
+  
+  - name: run composer install
+    tags: composer,install
+    become: no
+    composer: command=install working_dir=/home/ubuntu/myapp/
+
+  - name: copy myapp to apache location
+    tags: locate
+    copy:
+      src: /home/ubuntu/myapp
+      remote_src: yes
+      dest: /var/www/html/
+
+  - name: set www-data as owner
+    tags: wwwdata
+    file:
+      path: /var/www/html/myapp
+      owner: www-data
+      group: www-data
+      recurse: yes
+  
+  - name: change laravel app storage permissions
+    tags: wwwdata
+    file:
+      dest: /var/www/html/myapp/storage
+      owner: www-data
+      mode: '0775'
+      recurse: yes
+  
+  - name: change from .env.example to .env
+    tags: env,wwwdata
+    command: mv .env.example .env
+    args:
+      chdir: /var/www/html/myapp/
+  
+  - name: generate artisan key
+    tags: artisan
+    command: php artisan key:generate
+    args:
+      chdir: /var/www/html/myapp/
