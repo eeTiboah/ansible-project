@@ -30,19 +30,8 @@
         - software-properties-common
         - wget
    
-  # - name: import repository key
-  #   tags: php,phprepokey
-  #   get_url: 
-  #     url:  https://packages.sury.org/php/apt.gpg
-  #     dest: /etc/apt/trusted.gpg.d/php.gpg
-
-  # - name: add php packages apt repository to debian server
-  #   tags: php
-  #   command: echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list
-
   - name: add repo into sources list
     tags: php,repository
-    # become: no
     apt_repository:
       repo:  ppa:ondrej/php
 
