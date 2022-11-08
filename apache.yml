@@ -196,8 +196,51 @@
     args:
       chdir: /var/www/html/myapp/
   
+  - name: replace .env
+    tags: webphp
+    copy:
+      src: .env
+      dest: /var/www/html/myapp/.env
+
   - name: generate artisan key
     tags: artisan
     command: php artisan key:generate
     args:
       chdir: /var/www/html/myapp/
+
+  
+  - name: replace web.php
+    tags: webphp
+    copy:
+      src: web.php
+      dest: /var/www/html/myapp/routes/web.php
+
+  - name: copy rendered.conf to sites-available location
+    tags: locate
+    copy:
+      src: rendered.conf
+      dest: /etc/apache2/sites-available
+  
+  - name: disable default conf
+    tags: disable
+    command: a2dissite 000-default.conf
+    args:
+      chdir: /etc/apache2/sites-available
+
+  - name: enable site rendered
+    tags: ensite
+    command: a2ensite rendered.conf
+    args:
+      chdir: /etc/apache2/sites-available
+
+  - name: module rewrite
+    tags: rewrite
+    command: a2enmod rewrite
+    args:
+      chdir: /etc/apache2/sites-available
+  
+  - name: restart apache
+    tags: rewrite
+    command: systemctl reload apache2
+    args:
+      chdir: /etc/apache2/sites-available
